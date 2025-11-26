@@ -28,12 +28,17 @@ st.markdown(
         background-color: #d4f3d4 !important;
     }
 
-    /* Blau leuchtender Titel wie im Screenshot */
-    .blue-title {
-        font-size: 58px;                     /* kannst du anpassen */
-        color: #00B7FF;                      /* leuchtendes Cyan-Blau */
+    /* Titel-Styles */
+    .title-blue {
+        font-size: 40px;          /* Größe der blauen Zeile */
+        color: #00B7FF;           /* leuchtendes Blau */
         font-weight: 700;
-        text-shadow: 0px 0px 10px rgba(0, 183, 255, 0.7);
+        text-align: center;
+        line-height: 1.2;
+    }
+    .title-normal {
+        font-size: 24px;          /* normale Größe */
+        color: black;             /* normale Schriftfarbe */
         text-align: center;
         line-height: 1.2;
     }
@@ -42,16 +47,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# >>> Titel im blauen Style <<<
+# >>> Titel wie gewünscht: erste Zeile blau, zweite normal schwarz <<<
 st.markdown(
     """
-    <h1 class="blue-title">
-        GreenSight – Smart Monitoring for Sustainable Algal Biotechnology<br>
-        Auswertungsprogramm für den Extrakt aus Algenzellen (Scenedesmus)
+    <h1 class="title-blue">
+        GreenSight – Smart Monitoring for Sustainable Algal Biotechnology
     </h1>
+    <p class="title-normal">
+        Auswertungsprogramm für den Extrakt aus Algenzellen (Scenedesmus)
+    </p>
     """,
     unsafe_allow_html=True
 )
+
 
 
 # === Datei Upload ===
