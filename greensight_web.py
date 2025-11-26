@@ -164,7 +164,7 @@ def insert_after(base_label, new_handle, new_label):
 
 # OD-Eintrag
 od_handle = plt.Line2D([], [], color="white")
-od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}\n"
+od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}"
 
 # --- Reihenfolge setzen ---
 
@@ -175,9 +175,9 @@ insert_after("Baseline-uncorrected spectrum",
 
 insert_after(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}", od_handle, od_label)
 
-# Leerzeile zwischen OD und Baseline-corrected spectrum für Abstand
+# Leerzeile (eine echte Zeile Abstand) zwischen OD und Baseline-corrected spectrum
 blank_handle = plt.Line2D([], [], color="white")
-blank_label = "\n"
+blank_label = ""
 insert_after(od_label, blank_handle, blank_label)
 
 # 2. Baseline-corrected spectrum
