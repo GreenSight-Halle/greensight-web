@@ -27,12 +27,31 @@ st.markdown(
     section[data-testid="stSidebar"] {
         background-color: #d4f3d4 !important;
     }
+
+    /* Blau leuchtender Titel wie im Screenshot */
+    .blue-title {
+        font-size: 58px;                     /* kannst du anpassen */
+        color: #00B7FF;                      /* leuchtendes Cyan-Blau */
+        font-weight: 700;
+        text-shadow: 0px 0px 10px rgba(0, 183, 255, 0.7);
+        text-align: center;
+        line-height: 1.2;
+    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-st.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology\n Auswertungsprogramm für den Extrakt aus Algenzellen (Scenedesmus)")
+# >>> Titel im blauen Style <<<
+st.markdown(
+    """
+    <h1 class="blue-title">
+        GreenSight – Smart Monitoring for Sustainable Algal Biotechnology<br>
+        Auswertungsprogramm für den Extrakt aus Algenzellen (Scenedesmus)
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
 
 # === Datei Upload ===
 uploaded_file = st.file_uploader("CSV oder TXT Datei hochladen", type=["csv", "txt"])
