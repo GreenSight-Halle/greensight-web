@@ -137,8 +137,8 @@ if uploaded_file is not None:
                 break
 
         # Integral (Baseline-uncorrected) direkt darunter
-        int_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm) uncorrected"))
-        int_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm) uncorrected"))
+        int_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm) {integral_uncorrected:.4f}"))
+        int_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm) {integral_uncorrected:.4f}"))
         handles.insert(base_idx + 1, int_handle)
         labels.insert(base_idx + 1, int_label)
 
