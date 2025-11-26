@@ -21,9 +21,8 @@ st.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
 uploaded_file = st.file_uploader("CSV oder TXT Datei hochladen", type=["csv", "txt"])
 
 if uploaded_file is not None:
-    # === Original: Datei laden ===
+    # === Datei laden ===
     def load_spectral_file(path_or_file):
-        # Prüfen, ob path_or_file ein Pfad oder UploadedFile ist
         if isinstance(path_or_file, str):
             ext = os.path.splitext(path_or_file)[1].lower()
         else:
@@ -58,7 +57,6 @@ if uploaded_file is not None:
 
         raise ValueError(f"❌ Dateiformat '{ext}' wird nicht unterstützt!")
 
-    # === Original Code: Einlesen, Verarbeitung, Analyse ===
     df = load_spectral_file(uploaded_file)
 
     if df.shape[1] < 2:
@@ -100,12 +98,12 @@ if uploaded_file is not None:
         # --- Integral 660–670 nm ---
         lower, upper = 660, 670
         sum_region = df[(df["Wavelength"] >= lower) & (df["Wavelength"] <= upper)]
-        integral_uncorrected = np.trapezoid(sum_region["Intensity"], sum_region["Wavelength"])
-        integral_corrected   = np.trapezoid(sum_region["Y_corrected"], sum_region["Wavelength"])
+        integral_uncorrected = np.trapz(sum_region["Intensity"], sum_region["Wavelength"])
+        integral_corrected   = np.trapz(sum_region["Y_corrected"], sum_region["Wavelength"])
         st.write(f"📈 Integral (uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
         st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
-        # --- Plot Original ---
+        # --- Plot ---
         plt.figure(figsize=(8, 5))
         plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
         plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
@@ -121,25 +119,44 @@ if uploaded_file is not None:
         plt.ylim(0, 1.0)
         plt.yticks(np.arange(0, 1.1, 0.1))
 
-        # === Legende unverändert ===
+        # === Legende exakt wie Desktop-Version ===
         handles, labels = plt.gca().get_legend_handles_labels()
+
         header_handle = plt.Line2D([], [], color="white")
         header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
         handles.insert(0, header_handle)
         labels.insert(0, header_label)
+
+        # Position Baseline-uncorrected Spectrum
+        for i, lab in enumerate(labels):
+            if "Baseline-uncorrected spectrum" in lab:
+                base_idx = i
+                break
+
+        # Integral (Baseline-uncorrected Spectrum) direkt darunter
         int_handle = plt.Line2D([], [], color="white")
-        int_label  = f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"
-        handles.append(int_handle)
-        labels.append(int_label)
+        int_label  = f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"
+        handles.insert(base_idx + 1, int_handle)
+        labels.insert(base_idx + 1, int_label)
+
+        # OD direkt unter Integral
         od_handle = plt.Line2D([], [], color="white")
         od_label  = f"OD ({od_low}-{od_high} nm): {od_value:.4f}\n"
-        handles.append(od_handle)
-        labels.append(od_label)
-        plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1), borderaxespad=0.5, labelspacing=0.6)
+        handles.insert(base_idx + 2, od_handle)
+        labels.insert(base_idx + 2, od_label)
+
+        # Integral Baseline-corrected Spectrum
+        int_corr_handle = plt.Line2D([], [], color="white")
+        int_corr_label  = f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"
+        handles.append(int_corr_handle)
+        labels.append(int_corr_label)
+
+        plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
+                   borderaxespad=0.5, labelspacing=0.6)
 
         st.pyplot(plt)
 
-        # --- Plot Download ---
+        # --- Download Plot ---
         buf = BytesIO()
         plt.savefig(buf, format="png")
         buf.seek(0)
