@@ -35,7 +35,7 @@ st.markdown(
 # >>> Titel: erste Zeile blau, zweite Zeile normal schwarz (inline CSS zwingend)
 st.markdown(
     """
-    <h1 style="color:#00B7FF; font-size:60px; font-weight:800; text-align:center; line-height:1.2; margin-bottom:10px;">
+    <h1 style="color:#00B7FF; font-size:60px; font-weight:800; text-align:center; line-height:1.0; margin-bottom:10px;">
         GreenSight – Smart Monitoring for Sustainable Algal Biotechnology
     </h1>
     <p style="color:black; font-size:28px; text-align:center; line-height:1.2;">
