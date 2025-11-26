@@ -38,7 +38,7 @@ st.markdown(
     <h1 style="color:#00B7FF; font-size:30px; font-weight:800; text-align:center; line-height:1.2; margin-bottom:10px;">
         GreenSight – Smart Monitoring for Sustainable Algal Biotechnology
     </h1>
-    <p style="color:black; font-size:28px; text-align:center; line-height:1.2;">
+    <p style="color:black; font-size:18px; text-align:center; line-height:1.2;">
         Auswertungsprogramm für den Extrakt aus Algenzellen (Scenedesmus)
     </p>
     """,
