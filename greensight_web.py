@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov 26 08:24:39 2025
-
+Created on Wed Nov 26 2025
 @author: medphysiker_sergei
 """
 
@@ -12,8 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from datetime import datetime
-import os
 from io import StringIO, BytesIO
+import os
 
 st.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
 
@@ -22,23 +21,24 @@ uploaded_file = st.file_uploader("CSV oder TXT Datei hochladen", type=["csv", "t
 
 if uploaded_file is not None:
 
-    # === Datei laden (CSV oder TXT mit Header-Erkennung) ===
-    def load_spectral_file(path_or_file):
-        if isinstance(path_or_file, str):
-            ext = os.path.splitext(path_or_file)[1].lower()
+    # === Funktion zum Laden ===
+    def load_spectral_file(file_or_path):
+        if isinstance(file_or_path, str):
+            ext = os.path.splitext(file_or_path)[1].lower()
         else:
-            ext = os.path.splitext(path_or_file.name)[1].lower()
+            ext = os.path.splitext(file_or_path.name)[1].lower()
 
         if ext == ".csv":
-            return pd.read_csv(path_or_file, header=None)
+            return pd.read_csv(file_or_path, header=None)
 
         if ext in [".txt", ".text"]:
-            if isinstance(path_or_file, str):
-                with open(path_or_file, "r") as f:
+            if isinstance(file_or_path, str):
+                with open(file_or_path, "r") as f:
                     lines = f.readlines()
             else:
-                lines = path_or_file.read().decode("utf-8").splitlines()
+                lines = file_or_path.read().decode("utf-8").splitlines()
 
+            # Header finden
             for i, line in enumerate(lines):
                 if "Begin Spectral Data" in line:
                     start = i + 1
@@ -48,145 +48,117 @@ if uploaded_file is not None:
 
             data_lines = lines[start:]
 
-            # Dezimal-Komma erkennen
+            # Dezimal-Komma erkennen und ersetzen
             uses_decimal_comma = any(
-                ("," in ln and any(char.isdigit() for char in ln))
+                ("," in ln and any(c.isdigit() for c in ln))
                 for ln in data_lines[:5]
             )
             if uses_decimal_comma:
                 data_lines = [ln.replace(",", ".") for ln in data_lines]
 
-            return pd.read_csv(StringIO("".join(data_lines)), sep=r"\s+", header=None, engine="python")
+            return pd.read_csv(StringIO("\n".join(data_lines)), sep=r"\s+", header=None, engine="python")
 
         raise ValueError(f"❌ Dateiformat '{ext}' wird nicht unterstützt!")
 
     # === Daten laden ===
-    df = load_spectral_file(uploaded_file)
+    try:
+        df = load_spectral_file(uploaded_file)
+    except Exception as e:
+        st.error(f"Fehler beim Laden der Datei: {e}")
+        st.stop()
 
     if df.shape[1] < 2:
         st.error("❌ Die Datei muss mindestens zwei Spalten enthalten!")
+        st.stop()
+
+    df = df.iloc[:, :2]
+    df.columns = ["Wavelength", "Intensity"]
+    df = df.apply(pd.to_numeric, errors="coerce").dropna()
+
+    heute = datetime.now().strftime("%d %B %Y")
+
+    # --- Baseline bei 850 nm ---
+    target_nm = 850
+    if (df["Wavelength"] == target_nm).any():
+        baseline_value = df.loc[df["Wavelength"] == target_nm, "Intensity"].values[0]
     else:
-        df = df.iloc[:, :2]
-        df.columns = ["Wavelength", "Intensity"]
-        df = df.apply(pd.to_numeric, errors="coerce").dropna()
+        nearest_idx = (df["Wavelength"] - target_nm).abs().idxmin()
+        baseline_value = df.loc[nearest_idx, "Intensity"]
 
-        heute = datetime.now().strftime("%d %B %Y")
+    df["Y_corrected"] = df["Intensity"] - baseline_value
+    df.loc[df["Wavelength"] == target_nm, "Y_corrected"] = 0.0
+    df["Y_corrected"] = df["Y_corrected"].round(6)
 
-        # --- Baseline: 850 nm exakt 0 ---
-        target_nm = 850
-        if (df["Wavelength"] == target_nm).any():
-            baseline_value = df.loc[df["Wavelength"] == target_nm, "Intensity"].values[0]
-        else:
-            nearest_idx = (df["Wavelength"] - target_nm).abs().idxmin()
-            baseline_value = df.loc[nearest_idx, "Intensity"]
+    st.write(f"✅ Baseline bei 850 nm korrigiert → exakt 0")
 
-        df["Y_corrected"] = df["Intensity"] - baseline_value
-        df.loc[df["Wavelength"] == target_nm, "Y_corrected"] = 0.0
-        df["Y_corrected"] = df["Y_corrected"].round(6)
+    # --- Peak 650–750 nm ---
+    subset = df[(df["Wavelength"] >= 650) & (df["Wavelength"] <= 750)]
+    if subset.empty:
+        st.warning("⚠️ Kein Datenbereich für Peak 650–750 nm gefunden!")
+        peak_wavelength = np.nan
+        peak_intensity = np.nan
+    else:
+        peak_idx = subset["Y_corrected"].idxmax()
+        peak_wavelength = df.loc[peak_idx, "Wavelength"]
+        peak_intensity = df.loc[peak_idx, "Y_corrected"]
+        st.write(f"🟢 Exakter Peak: {peak_wavelength:.2f} nm, Intensität: {peak_intensity:.2f}")
 
-        st.write(f"✅ Baseline bei 850 nm korrigiert → exakt 0")
+    # --- OD Peak ±5 nm ---
+    if not np.isnan(peak_wavelength):
+        od_low  = math.ceil((peak_wavelength - 5) / 10) * 10
+        od_high = math.ceil((peak_wavelength + 5) / 10) * 10
+        od_region = df[(df["Wavelength"] >= od_low) & (df["Wavelength"] <= od_high)]
+        od_value = od_region["Intensity"].mean()
+        st.write(f"✅ OD (peak ±5 nm) = {od_value:.4f}")
+    else:
+        od_value = np.nan
 
-        # --- Peak 650–750 nm ---
-        subset = df[(df["Wavelength"] >= 650) & (df["Wavelength"] <= 750)]
-        if subset.empty:
-            st.warning("⚠️ Kein Datenbereich für Peak 650–750 nm gefunden!")
-            peak_wavelength = peak_intensity = np.nan
-        else:
-            peak_idx = subset["Y_corrected"].idxmax()
-            peak_wavelength = df.loc[peak_idx, "Wavelength"]
-            peak_intensity = df.loc[peak_idx, "Y_corrected"]
-            st.write(f"🟢 Exakter Peak: {peak_wavelength:.2f} nm, Intensität: {peak_intensity:.2f}")
+    # --- Integral 660–670 nm ---
+    lower, upper = 660, 670
+    sum_region = df[(df["Wavelength"] >= lower) & (df["Wavelength"] <= upper)]
+    integral_uncorrected = np.trapz(sum_region["Intensity"], sum_region["Wavelength"])
+    integral_corrected   = np.trapz(sum_region["Y_corrected"], sum_region["Wavelength"])
+    st.write(f"📈 Integral (uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
+    st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
-        # --- OD Peak ±5 nm ---
-        if not subset.empty:
-            od_low  = math.ceil((peak_wavelength - 5) / 10) * 10
-            od_high = math.ceil((peak_wavelength + 5) / 10) * 10
-            od_region = df[(df["Wavelength"] >= od_low) & (df["Wavelength"] <= od_high)]
-            od_value = od_region["Intensity"].mean()
-            st.write(f"✅ OD ({od_low}-{od_high} nm) = {od_value:.4f}")
-        else:
-            od_low = od_high = od_value = np.nan
+    # --- Plot ---
+    plt.figure(figsize=(8, 5))
+    plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
+    plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
 
-        # --- Integral 660–670 nm ---
-        lower, upper = 660, 670
-        sum_region = df[(df["Wavelength"] >= lower) & (df["Wavelength"] <= upper)]
-        if sum_region.empty:
-            integral_uncorrected = integral_corrected = np.nan
-        else:
-            integral_uncorrected = np.trapz(sum_region["Intensity"], sum_region["Wavelength"])
-            integral_corrected   = np.trapz(sum_region["Y_corrected"], sum_region["Wavelength"])
+    # Integral-Bereiche
+    plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15,
+                     label=f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")
+    plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
+                     label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
 
-        st.write(f"📈 Integral (uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
-        st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
+    if not np.isnan(peak_wavelength):
+        plt.plot(peak_wavelength, peak_intensity, 'ro',
+                 label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
 
-        # --- Plot ---
-        plt.figure(figsize=(8, 5))
-        plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
-        plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
+    plt.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
+    plt.xlabel("Wavelength [nm]")
+    plt.ylabel("Absorbance [a.u.]")
+    plt.xlim(250, df["Wavelength"].max())
+    plt.ylim(0, 1.0)
+    plt.yticks(np.arange(0, 1.1, 0.1))
 
-        if not sum_region.empty:
-            plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15,
-                             label=f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")
-            plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
-                             label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
+    # Legende
+    handles, labels = plt.gca().get_legend_handles_labels()
+    header_handle = plt.Line2D([], [], color="white")
+    header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
+    handles.insert(0, header_handle)
+    labels.insert(0, header_label)
+    leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
+                     borderaxespad=0.5, labelspacing=0.6)
+    for text in leg.get_texts():
+        text.set_ha('left')
+        text.set_x(text.get_position()[0] + 0.01)
 
-        if not subset.empty:
-            plt.plot(peak_wavelength, peak_intensity, 'ro',
-                     label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
+    st.pyplot(plt)
 
-        plt.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
-        plt.xlabel("Wavelength [nm]")
-        plt.ylabel("Absorbance [a.u.]")
-        plt.xlim(250, df["Wavelength"].max())
-        plt.ylim(0, 1.0)
-        plt.yticks(np.arange(0, 1.1, 0.1))
-
-        # === Legende wie Desktop ===
-        handles, labels = plt.gca().get_legend_handles_labels()
-        header_handle = plt.Line2D([], [], color="white")
-        header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
-        handles.insert(0, header_handle)
-        labels.insert(0, header_label)
-
-        # Position Baseline-uncorrected spectrum
-        for i, lab in enumerate(labels):
-            if "Baseline-uncorrected spectrum" in lab:
-                base_idx = i
-                break
-
-        # Integral und OD unter Baseline-uncorrected spectrum
-        if not sum_region.empty:
-            int_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"))
-            int_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"))
-            handles.insert(base_idx + 1, int_handle)
-            labels.insert(base_idx + 1, int_label)
-
-        od_handle = plt.Line2D([], [], color="white")
-        od_label  = f"OD ({od_low}-{od_high} nm): {od_value:.4f}\n"
-        handles.insert(base_idx + 2, od_handle)
-        labels.insert(base_idx + 2, od_label)
-
-        # Baseline-corrected spectrum
-        for i, lab in enumerate(labels):
-            if "Baseline-corrected spectrum" in lab:
-                corr_idx = i
-                break
-        if not sum_region.empty:
-            int_corr_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"))
-            int_corr_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"))
-            handles.insert(corr_idx + 1, int_corr_handle)
-            labels.insert(corr_idx + 1, int_corr_label)
-
-        leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
-                         borderaxespad=0.5, labelspacing=0.6)
-        for text in leg.get_texts():
-            text.set_ha('left')
-            text.set_x(text.get_position()[0] + 0.01)
-
-        st.pyplot(plt)
-
-        # --- Hochauflösender Download (600 DPI) ---
-        buf = BytesIO()
-        plt.savefig(buf, format="png", dpi=600)
-        buf.seek(0)
-        st.download_button("Download Plot", buf, file_name="spectrum.png", mime="image/png")
+    # --- Download Plot ---
+    buf = BytesIO()
+    plt.savefig(buf, format="png", dpi=600)
+    buf.seek(0)
+    st.download_button("Download Plot", buf, file_name="spectrum.png", mime="image/png")
