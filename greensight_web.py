@@ -14,7 +14,7 @@ from datetime import datetime
 from io import StringIO, BytesIO
 import os
 
-st.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
+st.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology\n Auswertungsprogramm für den Extrakt der Algenzellen (Scenedesmus)")
 
 # === Datei Upload ===
 uploaded_file = st.file_uploader("CSV oder TXT Datei hochladen", type=["csv", "txt"])
