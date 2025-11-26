@@ -26,7 +26,6 @@ if uploaded_file is not None:
 
     # === Datei laden ===
     def load_spectral_file(path_or_file):
-        # Prüfen ob Pfad oder UploadedFile
         if isinstance(path_or_file, str):
             ext = os.path.splitext(path_or_file)[1].lower()
         else:
@@ -115,7 +114,7 @@ if uploaded_file is not None:
         plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
         plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
 
-        # Integralflächen unter Baseline
+        # Integralflächen
         plt.fill_between(sum_region["Wavelength"], df.loc[sum_region.index, "Intensity"], color="blue", alpha=0.15)
         plt.fill_between(sum_region["Wavelength"], df.loc[sum_region.index, "Y_corrected"], color="orange", alpha=0.35)
 
@@ -130,27 +129,34 @@ if uploaded_file is not None:
         plt.ylim(0, 1.0)
         plt.yticks(np.arange(0, 1.1, 0.1))
 
-        # === Legende exakt wie lokal ===
+        # === Legende exakt wie im Spyder-Code ===
         handles, labels = plt.gca().get_legend_handles_labels()
+
         header_handle = plt.Line2D([], [], color="white")
         header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
         handles.insert(0, header_handle)
         labels.insert(0, header_label)
 
-        # Position Baseline-uncorrected Spectrum
+        # Baseline-uncorrected Spectrum Position
         base_idx = labels.index("Baseline-uncorrected spectrum")
 
-        # Integral unter Baseline-uncorrected Spectrum
-        int_handle = plt.Line2D([], [], color="white")
-        int_label  = f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"
-        handles.insert(base_idx + 1, int_handle)
-        labels.insert(base_idx + 1, int_label)
+        # Integral unter Baseline-uncorrected
+        int_unc_handle = plt.Line2D([], [], color="white")
+        int_unc_label  = f"Integral ({lower}-{upper} nm, uncorrected): {integral_uncorrected:.4f}"
+        handles.insert(base_idx + 1, int_unc_handle)
+        labels.insert(base_idx + 1, int_unc_label)
+
+        # Integral unter Baseline-corrected
+        int_corr_handle = plt.Line2D([], [], color="white")
+        int_corr_label  = f"Integral ({lower}-{upper} nm, corrected): {integral_corrected:.4f}"
+        handles.insert(base_idx + 2, int_corr_handle)
+        labels.insert(base_idx + 2, int_corr_label)
 
         # OD direkt darunter
         od_handle = plt.Line2D([], [], color="white")
         od_label  = f"OD ({od_low}-{od_high} nm): {od_value:.4f}"
-        handles.insert(base_idx + 2, od_handle)
-        labels.insert(base_idx + 2, od_label)
+        handles.insert(base_idx + 3, od_handle)
+        labels.insert(base_idx + 3, od_label)
 
         plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1), borderaxespad=0.5, labelspacing=0.6)
 
