@@ -122,43 +122,74 @@ if uploaded_file is not None:
     st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
     # --- Plot ---
-    plt.figure(figsize=(8, 5))
-    plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
-    plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
+        plt.figure(figsize=(8, 5))
+        plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
+        plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
 
-    # Integral-Bereiche
-    plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15,
-                     label=f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")
-    plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
-                     label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
+        # Fill-Bereiche
+        plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15,
+                         label=f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")
+        plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
+                         label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
 
-    if not np.isnan(peak_wavelength):
         plt.plot(peak_wavelength, peak_intensity, 'ro',
                  label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
 
-    plt.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
-    plt.xlabel("Wavelength [nm]")
-    plt.ylabel("Absorbance [a.u.]")
-    plt.xlim(250, df["Wavelength"].max())
-    plt.ylim(0, 1.0)
-    plt.yticks(np.arange(0, 1.1, 0.1))
+        plt.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
+        plt.xlabel("Wavelength [nm]")
+        plt.ylabel("Absorbance [a.u.]")
+        plt.xlim(250, df["Wavelength"].max())
+        plt.ylim(0, 1.0)
+        plt.yticks(np.arange(0, 1.1, 0.1))
 
-    # Legende
-    handles, labels = plt.gca().get_legend_handles_labels()
-    header_handle = plt.Line2D([], [], color="white")
-    header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
-    handles.insert(0, header_handle)
-    labels.insert(0, header_label)
-    leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
-                     borderaxespad=0.5, labelspacing=0.6)
-    for text in leg.get_texts():
-        text.set_ha('left')
-        text.set_x(text.get_position()[0] + 0.01)
+        # === Legende exakt wie Desktop ===
+        handles, labels = plt.gca().get_legend_handles_labels()
 
-    st.pyplot(plt)
+        # Header
+        header_handle = plt.Line2D([], [], color="white")
+        header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
+        handles.insert(0, header_handle)
+        labels.insert(0, header_label)
 
-    # --- Download Plot ---
-    buf = BytesIO()
-    plt.savefig(buf, format="png", dpi=600)
-    buf.seek(0)
-    st.download_button("Download Plot", buf, file_name="spectrum.png", mime="image/png")
+        # Position Baseline-uncorrected spectrum
+        for i, lab in enumerate(labels):
+            if "Baseline-uncorrected spectrum" in lab:
+                base_idx = i
+                break
+
+        # Integral (Baseline-uncorrected) direkt darunter
+        int_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"))
+        int_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"))
+        handles.insert(base_idx + 1, int_handle)
+        labels.insert(base_idx + 1, int_label)
+
+        # OD direkt darunter
+        od_handle = plt.Line2D([], [], color="white")
+        od_label  = f"OD ({od_low}-{od_high} nm): {od_value:.4f}\n"
+        handles.insert(base_idx + 2, od_handle)
+        labels.insert(base_idx + 2, od_label)
+
+        # Baseline-corrected spectrum
+        for i, lab in enumerate(labels):
+            if "Baseline-corrected spectrum" in lab:
+                corr_idx = i
+                break
+        int_corr_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"))
+        int_corr_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"))
+        handles.insert(corr_idx + 1, int_corr_handle)
+        labels.insert(corr_idx + 1, int_corr_label)
+
+        # Legende zeichnen
+        leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
+                         borderaxespad=0.5, labelspacing=0.6)
+        for text in leg.get_texts():
+            text.set_ha('left')
+            text.set_x(text.get_position()[0] + 0.01)
+
+        st.pyplot(plt)
+
+        # --- Hochauflösender Download (600 DPI) ---
+        buf = BytesIO()
+        plt.savefig(buf, format="png", dpi=600)
+        buf.seek(0)
+        st.download_button("Download Plot", buf, file_name="spectrum.png", mime="image/png")
