@@ -27,40 +27,23 @@ st.markdown(
     section[data-testid="stSidebar"] {
         background-color: #d4f3d4 !important;
     }
-
-    /* Titel-Styles */
-    .title-blue {
-        font-size: 60px;          /* groß wie im Screenshot */
-        color: #00B7FF;           /* leuchtendes Blau */
-        font-weight: 800;
-        text-align: center;
-        line-height: 1.2;
-        margin-bottom: 10px;
-    }
-    .title-normal {
-        font-size: 28px;          /* normale Größe */
-        color: black;             /* normale Schriftfarbe */
-        text-align: center;
-        line-height: 1.2;
-    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# >>> Titel: erste Zeile blau, zweite normal schwarz <<<
+# >>> Titel: erste Zeile blau, zweite Zeile normal schwarz (inline CSS zwingend)
 st.markdown(
     """
-    <h1 class="title-blue">
+    <h1 style="color:#00B7FF; font-size:60px; font-weight:800; text-align:center; line-height:1.2; margin-bottom:10px;">
         GreenSight – Smart Monitoring for Sustainable Algal Biotechnology
     </h1>
-    <p class="title-normal">
+    <p style="color:black; font-size:28px; text-align:center; line-height:1.2;">
         Auswertungsprogramm für den Extrakt aus Algenzellen (Scenedesmus)
     </p>
     """,
     unsafe_allow_html=True
 )
-
 
 # === Datei Upload ===
 uploaded_file = st.file_uploader("CSV oder TXT Datei hochladen", type=["csv", "txt"])
