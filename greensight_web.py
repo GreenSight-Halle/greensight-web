@@ -94,7 +94,7 @@ if uploaded_file is not None:
         od_high = math.ceil((peak_wavelength + 5) / 10) * 10
         od_region = df[(df["Wavelength"] >= od_low) & (df["Wavelength"] <= od_high)]
         od_value = od_region["Intensity"].mean()
-        st.write(f"✅ OD (peak ±5 nm) = {od_value:.4f}")
+        st.write(f"✅ OD (660-670 nm) = {od_value:.4f}")
 
         # --- Integral 660–670 nm ---
         lower, upper = 660, 670
