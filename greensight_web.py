@@ -14,6 +14,24 @@ from datetime import datetime
 from io import StringIO, BytesIO
 import os
 
+# >>> Hellgrüner Hintergrund für die gesamte Web-App <<<
+st.markdown(
+    """
+    <style>
+    /* Gesamter Hintergrund hellgrün */
+    .stApp {
+        background-color: #e8fbe8;
+    }
+
+    /* Sidebar etwas dunkler hellgrün */
+    section[data-testid="stSidebar"] {
+        background-color: #d4f3d4 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology\n Auswertungsprogramm für den Extrakt aus Algenzellen (Scenedesmus)")
 
 # === Datei Upload ===
