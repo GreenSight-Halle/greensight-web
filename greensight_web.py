@@ -162,14 +162,14 @@ def insert_after(base_label, new_handle, new_label):
 
 # OD Eintrag
 od_handle = plt.Line2D([], [], color="white")
-od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}\n"
+od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}"
 
 # Reihenfolge:
 # 1. Baseline-uncorrected spectrum
 #    → Integral uncorrected
 #    → OD
 insert_after("Baseline-uncorrected spectrum", handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")),
-             labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")))
+             labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}\n")))
 insert_after("Baseline-uncorrected spectrum", od_handle, od_label)
 
 # 2. Baseline-corrected spectrum
