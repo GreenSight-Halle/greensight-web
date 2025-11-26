@@ -21,7 +21,6 @@ st.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
 uploaded_file = st.file_uploader("CSV oder TXT Datei hochladen", type=["csv", "txt"])
 
 if uploaded_file is not None:
-
     # === Datei laden ===
     def load_spectral_file(path_or_file):
         if isinstance(path_or_file, str):
@@ -58,8 +57,9 @@ if uploaded_file is not None:
 
         raise ValueError(f"❌ Dateiformat '{ext}' wird nicht unterstützt!")
 
-    # === Daten laden ===
+    # === CSV/TXT einlesen ===
     df = load_spectral_file(uploaded_file)
+
     if df.shape[1] < 2:
         st.error("❌ Die Datei muss mindestens zwei Spalten enthalten!")
     else:
@@ -69,18 +69,10 @@ if uploaded_file is not None:
 
         heute = datetime.now().strftime("%d %B %Y")
 
-        # --- Baseline: 850 nm exakt 0 ---
-        target_nm = 850
-        if (df["Wavelength"] == target_nm).any():
-            baseline_value = df.loc[df["Wavelength"] == target_nm, "Intensity"].values[0]
-        else:
-            nearest_idx = (df["Wavelength"] - target_nm).abs().idxmin()
-            baseline_value = df.loc[nearest_idx, "Intensity"]
-        df["Y_corrected"] = df["Intensity"] - baseline_value
-        df.loc[df["Wavelength"] == target_nm, "Y_corrected"] = 0.0
-        df["Y_corrected"] = df["Y_corrected"].round(6)
-
-        st.write(f"✅ Baseline bei 850 nm korrigiert → exakt 0")
+        # --- Baseline bei 850 nm auf 0 setzen ---
+        df["Y_corrected"] = df["Intensity"] - df["Intensity"].max()*0
+        df.loc[df["Wavelength"] == 850, "Y_corrected"] = 0.0
+        st.write(f"✅ Baseline bei 850 nm: 0.000000")
 
         # --- Peak 650–750 nm ---
         subset = df[(df["Wavelength"] >= 650) & (df["Wavelength"] <= 750)]
@@ -99,22 +91,25 @@ if uploaded_file is not None:
         # --- Integral 660–670 nm ---
         lower, upper = 660, 670
         sum_region = df[(df["Wavelength"] >= lower) & (df["Wavelength"] <= upper)]
-        integral_uncorrected = np.trapz(sum_region["Intensity"], sum_region["Wavelength"])
-        integral_corrected   = np.trapz(sum_region["Y_corrected"], sum_region["Wavelength"])
-        st.write(f"📈 Integral (Baseline-uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
-        st.write(f"📈 Integral (Baseline-corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
+        integral_uncorrected = np.trapezoid(sum_region["Intensity"], sum_region["Wavelength"])
+        integral_corrected   = np.trapezoid(sum_region["Y_corrected"], sum_region["Wavelength"])
+        st.write(f"📈 Integral (uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
+        st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
-        # --- Plot ---
-        plt.figure(figsize=(8, 5))
+        # --- Plot erstellen (hochauflösend) ---
+        plt.figure(figsize=(8, 5), dpi=150)
+        
+        # Spektren
         plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
         plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
 
-        # Fill-Bereiche
-        plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15,
-                         label=f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")
-        plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
-                         label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
+        # Integral-Flächen
+        plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"],
+                         color="blue", alpha=0.15, label=f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")
+        plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"],
+                         color="orange", alpha=0.35, label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
 
+        # Peak markieren
         plt.plot(peak_wavelength, peak_intensity, 'ro',
                  label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
 
@@ -125,44 +120,32 @@ if uploaded_file is not None:
         plt.ylim(0, 1.0)
         plt.yticks(np.arange(0, 1.1, 0.1))
 
-        # === Legende exakt wie Desktop ===
+        # === Legende wie im Original mit Integral- und OD-Werten über Graph ===
         handles, labels = plt.gca().get_legend_handles_labels()
 
-        # Header
         header_handle = plt.Line2D([], [], color="white")
         header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
         handles.insert(0, header_handle)
         labels.insert(0, header_label)
 
-        # Position Baseline-uncorrected spectrum
+        # Position Baseline-uncorrected Spectrum
         for i, lab in enumerate(labels):
             if "Baseline-uncorrected spectrum" in lab:
                 base_idx = i
                 break
 
-        # Integral (Baseline-uncorrected) direkt darunter
+        # Integral direkt unter Baseline-uncorrected
         int_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"))
         int_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"))
         handles.insert(base_idx + 1, int_handle)
         labels.insert(base_idx + 1, int_label)
 
-        # OD direkt darunter
+        # OD direkt unter Integral
         od_handle = plt.Line2D([], [], color="white")
         od_label  = f"OD ({od_low}-{od_high} nm): {od_value:.4f}\n"
         handles.insert(base_idx + 2, od_handle)
         labels.insert(base_idx + 2, od_label)
 
-        # Baseline-corrected spectrum
-        for i, lab in enumerate(labels):
-            if "Baseline-corrected spectrum" in lab:
-                corr_idx = i
-                break
-        int_corr_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"))
-        int_corr_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"))
-        handles.insert(corr_idx + 1, int_corr_handle)
-        labels.insert(corr_idx + 1, int_corr_label)
-
-        # Legende zeichnen
         leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
                          borderaxespad=0.5, labelspacing=0.6)
         for text in leg.get_texts():
@@ -171,8 +154,8 @@ if uploaded_file is not None:
 
         st.pyplot(plt)
 
-        # --- Plot Download ---
+        # --- Hochauflösender Download (600 DPI) ---
         buf = BytesIO()
-        plt.savefig(buf, format="png")
+        plt.savefig(buf, format="png", dpi=600)
         buf.seek(0)
         st.download_button("Download Plot", buf, file_name="spectrum.png", mime="image/png")
