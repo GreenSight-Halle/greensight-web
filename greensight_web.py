@@ -69,7 +69,7 @@ if uploaded_file is not None:
 
         heute = datetime.now().strftime("%d %B %Y")
 
-        # --- Baseline: 850 nm auf exakt 0 ---
+        # --- Baseline: 850 nm exakt 0 ---
         target_nm = 850
         if (df["Wavelength"] == target_nm).any():
             baseline_value = df.loc[df["Wavelength"] == target_nm, "Intensity"].values[0]
@@ -78,7 +78,6 @@ if uploaded_file is not None:
             baseline_value = df.loc[nearest_idx, "Intensity"]
         df["Y_corrected"] = df["Intensity"] - baseline_value
         df.loc[df["Wavelength"] == target_nm, "Y_corrected"] = 0.0
-        # Optional: kleiner Rundungsfehler vermeiden
         df["Y_corrected"] = df["Y_corrected"].round(6)
 
         st.write(f"✅ Baseline bei 850 nm korrigiert → exakt 0")
@@ -105,14 +104,15 @@ if uploaded_file is not None:
         st.write(f"📈 Integral (uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
         st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
-        # --- Plot erstellen ---
+        # --- Plot ---
         plt.figure(figsize=(8, 5))
         plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
         plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
-        plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15)
-        plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35)
-        plt.plot(peak_wavelength, peak_intensity, 'ro',
-                 label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
+        plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15,
+                         label=f"Integral ({lower}-{upper} nm) uncorrected")
+        plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
+                         label=f"Integral ({lower}-{upper} nm) corrected")
+        plt.plot(peak_wavelength, peak_intensity, 'ro', label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
 
         plt.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
         plt.xlabel("Wavelength [nm]")
@@ -121,24 +121,26 @@ if uploaded_file is not None:
         plt.ylim(0, 1.0)
         plt.yticks(np.arange(0, 1.1, 0.1))
 
-        # === Legende mit Integral-Flächen ===
+        # === Legende exakt wie Desktop ===
         handles, labels = plt.gca().get_legend_handles_labels()
+
+        # Header
         header_handle = plt.Line2D([], [], color="white")
         header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
         handles.insert(0, header_handle)
         labels.insert(0, header_label)
 
-        # Position Baseline-uncorrected Spectrum
+        # Position Baseline-uncorrected spectrum
         for i, lab in enumerate(labels):
             if "Baseline-uncorrected spectrum" in lab:
                 base_idx = i
                 break
 
-        # Integral uncorrected direkt unter Baseline-uncorrected
-        int_handle_uncorr = Patch(facecolor='blue', alpha=0.15, edgecolor='blue')
-        int_label_uncorr  = f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"
-        handles.insert(base_idx + 1, int_handle_uncorr)
-        labels.insert(base_idx + 1, int_label_uncorr)
+        # Integral (Baseline-uncorrected) direkt darunter
+        int_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm) uncorrected"))
+        int_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm) uncorrected"))
+        handles.insert(base_idx + 1, int_handle)
+        labels.insert(base_idx + 1, int_label)
 
         # OD direkt darunter
         od_handle = plt.Line2D([], [], color="white")
@@ -146,14 +148,19 @@ if uploaded_file is not None:
         handles.insert(base_idx + 2, od_handle)
         labels.insert(base_idx + 2, od_label)
 
-        # Integral corrected Spectrum am Ende
-        int_handle_corr = Patch(facecolor='orange', alpha=0.35, edgecolor='orange')
-        int_label_corr  = f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"
-        handles.append(int_handle_corr)
-        labels.append(int_label_corr)
+        # Baseline-corrected spectrum bleibt, Integral corrected darunter
+        for i, lab in enumerate(labels):
+            if "Baseline-corrected spectrum" in lab:
+                corr_idx = i
+                break
+        int_corr_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm) corrected"))
+        int_corr_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm) corrected"))
+        handles.insert(corr_idx + 1, int_corr_handle)
+        labels.insert(corr_idx + 1, int_corr_label)
 
         # Legende zeichnen
-        leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1), borderaxespad=0.5, labelspacing=0.6)
+        leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
+                         borderaxespad=0.5, labelspacing=0.6)
         for text in leg.get_texts():
             text.set_ha('left')
             text.set_x(text.get_position()[0] + 0.01)
