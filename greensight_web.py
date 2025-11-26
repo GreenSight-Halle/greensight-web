@@ -30,14 +30,15 @@ st.markdown(
 
     /* Titel-Styles */
     .title-blue {
-        font-size: 40px;          /* Größe der blauen Zeile */
+        font-size: 60px;          /* groß wie im Screenshot */
         color: #00B7FF;           /* leuchtendes Blau */
-        font-weight: 700;
+        font-weight: 800;
         text-align: center;
         line-height: 1.2;
+        margin-bottom: 10px;
     }
     .title-normal {
-        font-size: 24px;          /* normale Größe */
+        font-size: 28px;          /* normale Größe */
         color: black;             /* normale Schriftfarbe */
         text-align: center;
         line-height: 1.2;
@@ -47,7 +48,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# >>> Titel wie gewünscht: erste Zeile blau, zweite normal schwarz <<<
+# >>> Titel: erste Zeile blau, zweite normal schwarz <<<
 st.markdown(
     """
     <h1 class="title-blue">
@@ -59,7 +60,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 
 
 # === Datei Upload ===
