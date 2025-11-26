@@ -122,81 +122,81 @@ if uploaded_file is not None:
     st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
     # --- Plot ---
-plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(8, 5))
 
-# Spektren
-plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
-plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
+    # Spektren
+    plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
+    plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
 
-# Fill-Bereiche
-plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15,
-                 label=f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")
-plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
-                 label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
+    # Fill-Bereiche
+    plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15,
+                     label=f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")
+    plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
+                     label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
 
-# Peak markieren
-if not np.isnan(peak_wavelength):
-    plt.plot(peak_wavelength, peak_intensity, 'ro',
-             label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
+    # Peak markieren
+    if not np.isnan(peak_wavelength):
+        plt.plot(peak_wavelength, peak_intensity, 'ro',
+                 label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
 
-# Achsen & Titel
-plt.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
-plt.xlabel("Wavelength [nm]")
-plt.ylabel("Absorbance [a.u.]")
-plt.xlim(250, df["Wavelength"].max())
-plt.ylim(0, 1.0)
-plt.yticks(np.arange(0, 1.1, 0.1))
+    # Achsen & Titel
+    plt.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
+    plt.xlabel("Wavelength [nm]")
+    plt.ylabel("Absorbance [a.u.]")
+    plt.xlim(250, df["Wavelength"].max())
+    plt.ylim(0, 1.0)
+    plt.yticks(np.arange(0, 1.1, 0.1))
 
-# === Legende exakt wie Desktop-Version ===
-handles, labels = plt.gca().get_legend_handles_labels()
+    # === Legende exakt wie Desktop-Version ===
+    handles, labels = plt.gca().get_legend_handles_labels()
 
-# Header
-header_handle = plt.Line2D([], [], color="white")
-header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
-handles.insert(0, header_handle)
-labels.insert(0, header_label)
+    # Header
+    header_handle = plt.Line2D([], [], color="white")
+    header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}\n"
+    handles.insert(0, header_handle)
+    labels.insert(0, header_label)
 
-# Funktion zum Einfügen nach einem Label
-def insert_after(base_label, new_handle, new_label):
-    idx = labels.index(base_label)
-    handles.insert(idx + 1, new_handle)
-    labels.insert(idx + 1, new_label)
+    # Funktion zum Einfügen nach einem Label
+    def insert_after(base_label, new_handle, new_label):
+        idx = labels.index(base_label)
+        handles.insert(idx + 1, new_handle)
+        labels.insert(idx + 1, new_label)
 
-# OD-Eintrag
-od_handle = plt.Line2D([], [], color="white")
-od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}"
+    # OD-Eintrag
+    od_handle = plt.Line2D([], [], color="white")
+    od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}"
 
-# --- Reihenfolge setzen ---
+    # --- Reihenfolge setzen ---
 
-# 1. Baseline-uncorrected spectrum
-insert_after("Baseline-uncorrected spectrum",
-             handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")),
-             labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")))
+    # 1. Baseline-uncorrected spectrum
+    insert_after("Baseline-uncorrected spectrum",
+                 handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")),
+                 labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")))
 
-insert_after(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}", od_handle, od_label)
+    insert_after(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}", od_handle, od_label)
 
-# Leerzeile (eine echte Zeile Abstand) zwischen OD und Baseline-corrected spectrum
-blank_handle = plt.Line2D([], [], color="white")
-blank_label = ""
-insert_after(od_label, blank_handle, blank_label)
+    # Leerzeile (eine echte Zeile Abstand) zwischen OD und Baseline-corrected spectrum
+    blank_handle = plt.Line2D([], [], color="white")
+    blank_label = ""
+    insert_after(od_label, blank_handle, blank_label)
 
-# 2. Baseline-corrected spectrum
-insert_after("Baseline-corrected spectrum",
-             handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")),
-             labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")))
+    # 2. Baseline-corrected spectrum
+    insert_after("Baseline-corrected spectrum",
+                 handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")),
+                 labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")))
 
-# Legende zeichnen
-leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
-                 borderaxespad=0.5, labelspacing=0.6)
-for text in leg.get_texts():
-    text.set_ha('left')
-    text.set_x(text.get_position()[0] + 0.01)
+    # Legende zeichnen
+    leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
+                     borderaxespad=0.5, labelspacing=0.6)
+    for text in leg.get_texts():
+        text.set_ha('left')
+        text.set_x(text.get_position()[0] + 0.01)
 
-# Streamlit Plot
-st.pyplot(plt)
+    # Streamlit Plot
+    st.pyplot(plt)
 
-# --- Hochauflösender Download (600 DPI) ---
-buf = BytesIO()
-plt.savefig(buf, format="png", dpi=600)
-buf.seek(0)
-st.download_button("Download Plot", buf, file_name="spectrum.png", mime="image/png")
+    # --- Hochauflösender Download (600 DPI) ---
+    buf = BytesIO()
+    plt.savefig(buf, format="png", dpi=600)
+    buf.seek(0)
+    st.download_button("Download Plot", buf, file_name="spectrum.png", mime="image/png")
