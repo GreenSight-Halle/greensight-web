@@ -123,6 +123,8 @@ if uploaded_file is not None:
 
     # --- Plot ---
 plt.figure(figsize=(8, 5))
+
+# Spektren
 plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
 plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
 
@@ -132,11 +134,12 @@ plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue"
 plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
                  label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
 
-# Peak
+# Peak markieren
 if not np.isnan(peak_wavelength):
     plt.plot(peak_wavelength, peak_intensity, 'ro',
              label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
 
+# Achsen & Titel
 plt.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
 plt.xlabel("Wavelength [nm]")
 plt.ylabel("Absorbance [a.u.]")
@@ -144,7 +147,7 @@ plt.xlim(250, df["Wavelength"].max())
 plt.ylim(0, 1.0)
 plt.yticks(np.arange(0, 1.1, 0.1))
 
-# === Legende exakt wie Desktop ===
+# === Legende exakt wie Desktop-Version ===
 handles, labels = plt.gca().get_legend_handles_labels()
 
 # Header
@@ -153,28 +156,33 @@ header_label = f"Comparative absorption spectra of algae\n(Scenedesmus), {heute}
 handles.insert(0, header_handle)
 labels.insert(0, header_label)
 
-# --- Reihenfolge korrekt setzen ---
+# Funktion zum Einfügen nach einem Label
 def insert_after(base_label, new_handle, new_label):
-    """Fügt new_handle/new_label direkt nach base_label ein."""
     idx = labels.index(base_label)
     handles.insert(idx + 1, new_handle)
     labels.insert(idx + 1, new_label)
 
-# OD Eintrag
+# OD-Eintrag
 od_handle = plt.Line2D([], [], color="white")
 od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}\n"
 
-# Reihenfolge:
+# --- Reihenfolge setzen ---
+
 # 1. Baseline-uncorrected spectrum
-#    → Integral uncorrected
-#    → OD
-insert_after("Baseline-uncorrected spectrum", handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")),
+insert_after("Baseline-uncorrected spectrum",
+             handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")),
              labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")))
-insert_after("Baseline-uncorrected spectrum", od_handle, od_label)
+
+insert_after(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}", od_handle, od_label)
+
+# Leerzeile zwischen OD und Baseline-corrected spectrum für Abstand
+blank_handle = plt.Line2D([], [], color="white")
+blank_label = "\n"
+insert_after(od_label, blank_handle, blank_label)
 
 # 2. Baseline-corrected spectrum
-#    → Integral corrected
-insert_after("Baseline-corrected spectrum", handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")),
+insert_after("Baseline-corrected spectrum",
+             handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")),
              labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")))
 
 # Legende zeichnen
@@ -184,6 +192,7 @@ for text in leg.get_texts():
     text.set_ha('left')
     text.set_x(text.get_position()[0] + 0.01)
 
+# Streamlit Plot
 st.pyplot(plt)
 
 # --- Hochauflösender Download (600 DPI) ---
