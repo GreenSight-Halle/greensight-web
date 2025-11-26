@@ -53,6 +53,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
 # === Datei Upload ===
 uploaded_file = st.file_uploader("CSV oder TXT Datei hochladen", type=["csv", "txt"])
 
