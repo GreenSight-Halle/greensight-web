@@ -101,7 +101,7 @@ if uploaded_file is not None:
         peak_idx = subset["Y_corrected"].idxmax()
         peak_wavelength = df.loc[peak_idx, "Wavelength"]
         peak_intensity = df.loc[peak_idx, "Y_corrected"]
-        st.write(f"🟢 Exakter Peak: {peak_wavelength:.2f} nm, Intensität: {peak_intensity:.2f}")
+        st.write(f"🟢 Exakter Peak: {peak_wavelength:.2f} nm, Intensität: {peak_intensity:.2f} a.u. ")
 
     # --- OD Peak ±5 nm ---
     if not np.isnan(peak_wavelength):
@@ -118,8 +118,8 @@ if uploaded_file is not None:
     sum_region = df[(df["Wavelength"] >= lower) & (df["Wavelength"] <= upper)]
     integral_uncorrected = np.trapz(sum_region["Intensity"], sum_region["Wavelength"])
     integral_corrected   = np.trapz(sum_region["Y_corrected"], sum_region["Wavelength"])
-    st.write(f"📈 Integral (uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
-    st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
+    st.write(f"📈 Integral (Baseline-uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
+    st.write(f"📈 Integral (Baseline-corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
     # --- Plot ---
     plt.figure(figsize=(8, 5))
