@@ -171,8 +171,8 @@ if uploaded_file is not None:
 
         st.pyplot(plt)
 
-        # --- Plot Download ---
+        # --- Hochauflösender Download (600 DPI) ---
         buf = BytesIO()
-        plt.savefig(buf, format="png")
+        plt.savefig(buf, format="png", dpi=600)
         buf.seek(0)
         st.download_button("Download Plot", buf, file_name="spectrum.png", mime="image/png")
