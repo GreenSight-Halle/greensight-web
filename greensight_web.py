@@ -121,7 +121,7 @@ if uploaded_file is not None:
     st.write(f"📈 Integral (uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
     st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
-    # --- Plot ---
+   # --- Plot ---
 plt.figure(figsize=(8, 5))
 plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
 plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
@@ -162,14 +162,14 @@ def insert_after(base_label, new_handle, new_label):
 
 # OD Eintrag
 od_handle = plt.Line2D([], [], color="white")
-od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}"
+od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}\n"
 
 # Reihenfolge:
 # 1. Baseline-uncorrected spectrum
 #    → Integral uncorrected
 #    → OD
 insert_after("Baseline-uncorrected spectrum", handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")),
-             labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}\n")))
+             labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")))
 insert_after("Baseline-uncorrected spectrum", od_handle, od_label)
 
 # 2. Baseline-corrected spectrum
