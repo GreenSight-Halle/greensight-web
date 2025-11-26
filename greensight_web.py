@@ -73,14 +73,15 @@ if uploaded_file is not None:
         # --- Baseline ---
         target_nm = 850
         if (df["Wavelength"] == target_nm).any():
-            baseline_value = df.loc[df["Wavelength"] == target_nm, "Intensity"].values[0]
+        baseline_value = df.loc[df["Wavelength"] == target_nm, "Intensity"].values[0]
         else:
-            nearest_idx = (df["Wavelength"] - target_nm).abs().idxmin()
-            baseline_value = df.loc[nearest_idx, "Intensity"]
+        nearest_idx = (df["Wavelength"] - target_nm).abs().idxmin()
+        baseline_value = df.loc[nearest_idx, "Intensity"]
+
         df["Y_corrected"] = df["Intensity"] - baseline_value
         df.loc[df["Wavelength"] == target_nm, "Y_corrected"] = 0.0
 
-        st.write(f"✅ Baseline bei 850 nm: {baseline_value:.6f}")
+        print(f"✅ Baseline bei 850 nm: {baseline_value:.6f}")
 
         # --- Peak 650–750 nm ---
         subset = df[(df["Wavelength"] >= 650) & (df["Wavelength"] <= 750)]
