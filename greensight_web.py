@@ -99,20 +99,24 @@ if uploaded_file is not None:
         # --- Integral 660–670 nm ---
         lower, upper = 660, 670
         sum_region = df[(df["Wavelength"] >= lower) & (df["Wavelength"] <= upper)]
-        integral_uncorrected = np.trapezoid(sum_region["Intensity"], sum_region["Wavelength"])
-        integral_corrected   = np.trapezoid(sum_region["Y_corrected"], sum_region["Wavelength"])
-        st.write(f"📈 Integral (Baseline-uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
-        st.write(f"📈 Integral (Baseline-corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
+        integral_uncorrected = np.trapz(sum_region["Intensity"], sum_region["Wavelength"])
+        integral_corrected   = np.trapz(sum_region["Y_corrected"], sum_region["Wavelength"])
+        st.write(f"📈 Integral (uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
+        st.write(f"📈 Integral (corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
         # --- Plot ---
         plt.figure(figsize=(8, 5))
         plt.plot(df["Wavelength"], df["Intensity"], color="blue", label="Baseline-uncorrected spectrum")
         plt.plot(df["Wavelength"], df["Y_corrected"], color="green", label="Baseline-corrected spectrum")
+
+        # Fill-Bereiche
         plt.fill_between(sum_region["Wavelength"], sum_region["Intensity"], color="blue", alpha=0.15,
-                         label=f"Integral ({lower}-{upper} nm) uncorrected")
+                         label=f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")
         plt.fill_between(sum_region["Wavelength"], sum_region["Y_corrected"], color="orange", alpha=0.35,
-                         label=f"Integral ({lower}-{upper} nm) corrected")
-        plt.plot(peak_wavelength, peak_intensity, 'ro', label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
+                         label=f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")
+
+        plt.plot(peak_wavelength, peak_intensity, 'ro',
+                 label=f"Peak: {peak_wavelength:.2f} nm | {peak_intensity:.2f} a.u.")
 
         plt.title("GreenSight – Smart Monitoring for Sustainable Algal Biotechnology")
         plt.xlabel("Wavelength [nm]")
@@ -137,8 +141,8 @@ if uploaded_file is not None:
                 break
 
         # Integral (Baseline-uncorrected) direkt darunter
-        int_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm) {integral_uncorrected:.4f}"))
-        int_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm) {integral_uncorrected:.4f}"))
+        int_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"))
+        int_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"))
         handles.insert(base_idx + 1, int_handle)
         labels.insert(base_idx + 1, int_label)
 
@@ -148,13 +152,13 @@ if uploaded_file is not None:
         handles.insert(base_idx + 2, od_handle)
         labels.insert(base_idx + 2, od_label)
 
-        # Baseline-corrected spectrum bleibt, Integral corrected darunter
+        # Baseline-corrected spectrum
         for i, lab in enumerate(labels):
             if "Baseline-corrected spectrum" in lab:
                 corr_idx = i
                 break
-        int_corr_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm) corrected"))
-        int_corr_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm) corrected"))
+        int_corr_handle = handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"))
+        int_corr_label  = labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"))
         handles.insert(corr_idx + 1, int_corr_handle)
         labels.insert(corr_idx + 1, int_corr_label)
 
