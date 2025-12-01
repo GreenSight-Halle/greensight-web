@@ -69,11 +69,11 @@ if uploaded_file is not None:
 
             # Header finden
             for i, line in enumerate(lines):
-                if "Begin Spectral Data" in line:
+                if line.strip().startswith("200"):   # ← einzig geänderte Zeile
                     start = i + 1
                     break
             else:
-                raise ValueError("❌ 'Begin Spectral Data' nicht gefunden!")
+                raise ValueError("❌ '200' nicht gefunden!")
 
             data_lines = lines[start:]
 
