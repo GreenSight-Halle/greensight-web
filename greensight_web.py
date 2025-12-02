@@ -80,7 +80,7 @@ if uploaded_file is not None:
             # Dezimal-Komma erkennen und ersetzen
             uses_decimal_comma = any(
                 ("," in ln and any(c.isdigit() for c in ln))
-                for ln in data_lines[:5]
+                for ln in data_lines[:10]
             )
             if uses_decimal_comma:
                 data_lines = [ln.replace(",", ".") for ln in data_lines]
