@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Nov 26 2025
-@author: medphysiker_sergei
+@author: GreenSight
 """
 
 import streamlit as st
