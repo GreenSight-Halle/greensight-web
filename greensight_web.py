@@ -253,6 +253,8 @@ if uploaded_file is not None:
 
     # --- Reihenfolge setzen ---
 
+    # --- Reihenfolge setzen ---
+
     # 1. Baseline-uncorrected spectrum
     insert_after(
         "Baseline-uncorrected spectrum",
@@ -274,13 +276,9 @@ if uploaded_file is not None:
     )
 
     # OD unter Integral (baseline-corrected) einfügen
-    blank_handle_2 = plt.Line2D([], [], color="white")
-    blank_label_2 = ""
-
     insert_after(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}",
-                 blank_handle_2, blank_label_2)
+                 od_handle, od_label)
 
-    insert_after(blank_label_2, od_handle, od_label)
 
     # Legende zeichnen
     leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
