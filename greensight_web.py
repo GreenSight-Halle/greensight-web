@@ -251,8 +251,6 @@ if uploaded_file is not None:
                  handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")),
                  labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")))
 
-    insert_after(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}", od_handle, od_label)
-
     # Legende zeichnen
     leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
                      borderaxespad=0.5, labelspacing=0.6)
