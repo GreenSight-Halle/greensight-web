@@ -173,7 +173,8 @@ if uploaded_file is not None:
         od_low  = math.ceil((peak_wavelength - 5) / 10) * 10
         od_high = math.ceil((peak_wavelength + 5) / 10) * 10
         od_region = df[(df["Wavelength"] >= od_low) & (df["Wavelength"] <= od_high)]
-        od_value = od_region["Intensity"].mean()
+        #od_value = od_region["Intensity"].mean()
+        od_value = od_region["Y_corrected"].mean()
         st.write(f"✅ OD (660-670 nm) = {od_value:.4f}")
     else:
         od_value = np.nan
