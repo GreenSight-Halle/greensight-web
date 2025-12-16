@@ -231,7 +231,8 @@ if uploaded_file is not None:
     # OD-Eintrag
     od_handle = plt.Line2D([], [], color="white")
     #od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}"
-    od_label = rf"$\mathbf{{OD}}$ ({od_low}-{od_high} nm): {od_value:.4f}"
+    #od_label = rf"$\mathbf{{OD}}$ ({od_low}-{od_high} nm): {od_value:.4f}"
+    od_label = rf"$\mathbf{{OD}}\ \mathbf{{({od_low}-{od_high}\ nm):\ {od_value:.4f}}}$"
 
     ## --- Reihenfolge setzen ---
 
