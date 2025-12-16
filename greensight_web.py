@@ -232,24 +232,55 @@ if uploaded_file is not None:
     od_handle = plt.Line2D([], [], color="white")
     od_label = f"OD ({od_low}-{od_high} nm): {od_value:.4f}"
 
+    ## --- Reihenfolge setzen ---
+
+    ## 1. Baseline-uncorrected spectrum
+    #insert_after("Baseline-uncorrected spectrum",
+    #             handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")),
+    #             labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")))
+
+    #insert_after(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}", od_handle, od_label)
+
+    ## Leerzeile (eine echte Zeile Abstand) zwischen OD und Baseline-corrected spectrum
+    #blank_handle = plt.Line2D([], [], color="white")
+    #blank_label = ""
+    #insert_after(od_label, blank_handle, blank_label)
+
+    ## 2. Baseline-corrected spectrum
+    #insert_after("Baseline-corrected spectrum",
+    #             handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")),
+    #             labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")))
+
     # --- Reihenfolge setzen ---
 
     # 1. Baseline-uncorrected spectrum
-    insert_after("Baseline-uncorrected spectrum",
-                 handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")),
-                 labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")))
+    insert_after(
+        "Baseline-uncorrected spectrum",
+        handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}")),
+        labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}"))
+    )
 
-    insert_after(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}", od_handle, od_label)
-
-    # Leerzeile (eine echte Zeile Abstand) zwischen OD und Baseline-corrected spectrum
-    blank_handle = plt.Line2D([], [], color="white")
-    blank_label = ""
-    insert_after(od_label, blank_handle, blank_label)
+    # Leerzeile zwischen uncorrected und corrected Block
+    blank_handle_1 = plt.Line2D([], [], color="white")
+    blank_label_1 = ""
+    insert_after(f"Integral ({lower}-{upper} nm): {integral_uncorrected:.4f}",
+                 blank_handle_1, blank_label_1)
 
     # 2. Baseline-corrected spectrum
-    insert_after("Baseline-corrected spectrum",
-                 handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")),
-                 labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")))
+    insert_after(
+        "Baseline-corrected spectrum",
+        handles.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}")),
+        labels.pop(labels.index(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}"))
+    )
+
+    # OD unter Integral (baseline-corrected) einfügen
+    blank_handle_2 = plt.Line2D([], [], color="white")
+    blank_label_2 = ""
+
+    insert_after(f"Integral ({lower}-{upper} nm): {integral_corrected:.4f}",
+                 blank_handle_2, blank_label_2)
+
+    insert_after(blank_label_2, od_handle, od_label)
 
     # Legende zeichnen
     leg = plt.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.435, 1),
