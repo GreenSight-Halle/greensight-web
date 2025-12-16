@@ -253,8 +253,6 @@ if uploaded_file is not None:
 
     # --- Reihenfolge setzen ---
 
-    # --- Reihenfolge setzen ---
-
     # 1. Baseline-uncorrected spectrum
     insert_after(
         "Baseline-uncorrected spectrum",
