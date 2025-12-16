@@ -106,22 +106,54 @@ if uploaded_file is not None:
 
     heute = datetime.now().strftime("%d %B %Y")
 
-    # --- Baseline bei 850 nm ---
-    target_nm = 850
-    if (df["Wavelength"] == target_nm).any():
-        baseline_value = df.loc[df["Wavelength"] == target_nm, "Intensity"].values[0]
-    else:
-        nearest_idx = (df["Wavelength"] - target_nm).abs().idxmin()
-        baseline_value = df.loc[nearest_idx, "Intensity"]
+    ## --- Baseline bei 850 nm ---
+    #target_nm = 850
+    #if (df["Wavelength"] == target_nm).any():
+    #    baseline_value = df.loc[df["Wavelength"] == target_nm, "Intensity"].values[0]
+    #else:
+    #    nearest_idx = (df["Wavelength"] - target_nm).abs().idxmin()
+    #    baseline_value = df.loc[nearest_idx, "Intensity"]
 
+    #df["Y_corrected"] = df["Intensity"] - baseline_value
+    #df.loc[df["Wavelength"] == target_nm, "Y_corrected"] = 0.0
+    #df["Y_corrected"] = df["Y_corrected"].round(6)
+
+    #st.write(f"✅ Baseline bei 850 nm korrigiert → exakt 0")
+
+    ## --- Peak 650–750 nm ---
+    #subset = df[(df["Wavelength"] >= 650) & (df["Wavelength"] <= 750)]
+    #if subset.empty:
+    #    st.warning("⚠️ Kein Datenbereich für Peak 650–750 nm gefunden!")
+    #    peak_wavelength = np.nan
+    #    peak_intensity = np.nan
+    #else:
+    #    peak_idx = subset["Y_corrected"].idxmax()
+    #    peak_wavelength = df.loc[peak_idx, "Wavelength"]
+    #    peak_intensity = df.loc[peak_idx, "Y_corrected"]
+    #    st.write(f"🟢 Exakter Peak: {peak_wavelength:.2f} nm, Intensität: {peak_intensity:.2f} a.u. ")
+
+
+    # --- Baseline als Mittelwert 740–760 nm ---
+    baseline_subset = df[(df["Wavelength"] >= 740) & (df["Wavelength"] <= 760)]
+
+    if baseline_subset.empty:
+        st.warning("⚠️ Kein Datenbereich für Baseline 740–760 nm gefunden!")
+        baseline_value = np.nan
+    else:
+        baseline_value = baseline_subset["Intensity"].mean()
+        st.write(
+            f"✅ Baseline (Mittelwert 740–760 nm): {baseline_value:.6f}"
+        )
+
+    # --- Baseline-Korrektur ---
     df["Y_corrected"] = df["Intensity"] - baseline_value
-    df.loc[df["Wavelength"] == target_nm, "Y_corrected"] = 0.0
     df["Y_corrected"] = df["Y_corrected"].round(6)
 
-    st.write(f"✅ Baseline bei 850 nm korrigiert → exakt 0")
+    st.write("✅ Baseline 740–760 nm korrigiert → Mittelwert = 0")
 
     # --- Peak 650–750 nm ---
     subset = df[(df["Wavelength"] >= 650) & (df["Wavelength"] <= 750)]
+
     if subset.empty:
         st.warning("⚠️ Kein Datenbereich für Peak 650–750 nm gefunden!")
         peak_wavelength = np.nan
@@ -130,7 +162,11 @@ if uploaded_file is not None:
         peak_idx = subset["Y_corrected"].idxmax()
         peak_wavelength = df.loc[peak_idx, "Wavelength"]
         peak_intensity = df.loc[peak_idx, "Y_corrected"]
-        st.write(f"🟢 Exakter Peak: {peak_wavelength:.2f} nm, Intensität: {peak_intensity:.2f} a.u. ")
+
+        st.write(
+            f"🟢 Exakter Peak: {peak_wavelength:.2f} nm, "
+            f"Intensität: {peak_intensity:.2f} a.u."
+        )
 
     # --- OD Peak ±5 nm ---
     if not np.isnan(peak_wavelength):
