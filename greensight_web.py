@@ -182,8 +182,8 @@ if uploaded_file is not None:
     # --- Integral 660–670 nm ---
     lower, upper = 660, 670
     sum_region = df[(df["Wavelength"] >= lower) & (df["Wavelength"] <= upper)]
-    integral_uncorrected = np.trapz(sum_region["Intensity"], sum_region["Wavelength"])
-    integral_corrected   = np.trapz(sum_region["Y_corrected"], sum_region["Wavelength"])
+    integral_uncorrected = np.trapezoid(sum_region["Intensity"], sum_region["Wavelength"])
+    integral_corrected   = np.trapezoid(sum_region["Y_corrected"], sum_region["Wavelength"])
     st.write(f"📈 Integral (Baseline-uncorrected, {lower}-{upper} nm): {integral_uncorrected:.4f}")
     st.write(f"📈 Integral (Baseline-corrected, {lower}-{upper} nm): {integral_corrected:.4f}")
 
